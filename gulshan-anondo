@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SURA ROYAL LUXE - CFT Calculator</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background: #ffffff;
+        }
+
+        .board-input {
+            background: #d1d5db;
+            border-radius: 4px;
+            padding: 8px 6px;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            color: #1f2937;
+            outline: none;
+        }
+
+        .board-input:focus {
+            background: #cbd5e1;
+            box-shadow: 0 0 0 2px #064e3b;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4rem;
+            font-weight: 800;
+            color: rgba(74, 35, 17, 0.08);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            #printArea {
+                display: block !important;
+                width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .watermark {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white min-h-screen text-slate-900 pb-12">
+
+    <!-- HEADER -->
+    <header class="bg-[#4A2311] text-white py-6 px-4 text-center shadow-md no-print">
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-wide">
+            SURA ROYAL LUXE
+        </h1>
+
+        <p class="text-sm sm:text-base font-semibold text-slate-200 mt-1">
+            Uttor Badda, Dhaka-1212
+        </p>
+    </header>
+
+
+    <main class="max-w-2xl mx-auto px-4 pt-6">
+
+        <!-- RATE + MODE -->
+        <div class="no-print mb-8">
+
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+                <div class="w-full sm:w-1/2">
+
+                    <div class="flex items-center gap-1.5 font-bold text-slate-800 text-sm sm:text-base mb-1">
+                        <span>💰</span>
+                        <span>প্রতি CFT দাম</span>
+                    </div>
+
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        কাঠের দাম (প্রতি CFT)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="inputRate"
+                        placeholder="যেমন ৫০০০"
+                        oninput="calculateTotals()"
+                        class="w-full max-w-[220px] px-3 py-2 border-2 border-slate-700 rounded-sm font-semibold text-slate-800 outline-none"
+                    >
+                </div>
+
+
+                <!-- MODE -->
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+
+                    <label
+                        onclick="switchMode('round')"
+                        id="lblRound"
+                        class="cursor-pointer flex items-center gap-2 bg-emerald-900 text-white font-bold px-4 py-2 rounded-sm shadow-sm text-sm sm:text-base"
+                    >
+                        <input
+                            type="radio"
+                            name="mode"
+                            id="radioRound"
+                            checked
+                            class="w-4 h-4"
+                        >
+                        <span>গোল গাছ</span>
+                    </label>
+
+
+                    <label
+                        onclick="switchMode('sawn')"
+                        id="lblSawn"
+                        class="cursor-pointer flex items-center gap-2 bg-emerald-900 text-white font-bold px-4 py-2 rounded-sm shadow-sm opacity-80 text-sm sm:text-base"
+                    >
+                        <input
+                            type="radio"
+                            name="mode"
+                            id="radioSawn"
+                            class="w-4 h-4"
+                        >
+                        <span>সাইজ কাঠ</span>
+                    </label>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- CALCULATION BOARD -->
+        <div class="no-print mb-8">
+
+            <h2
+                id="boardTitle"
+                class="text-xl sm:text-2xl font-bold text-black flex items-center gap-2 mb-4"
+            >
+                🌳
+                <span>গাছের হিসাব</span>
+            </h2>
+
+
+            <div class="w-full overflow-x-auto">
+
+                <table class="w-full text-left border-collapse min-w-[340px]">
+
+                    <thead>
+
+                        <tr class="text-xs sm:text-sm font-bold text-black">
+
+                            <th class="py-2 px-1 text-center w-8">
+                                #
+                            </th>
+
+                            <th
+                                id="colHeader1"
+                                class="py-2 px-1 text-center"
+                            >
+                                বেড় (ইঞ্চি)
+                            </th>
+
+                            <th
+                                id="colHeaderThick"
+                                class="py-2 px-1 text-center hidden"
+                            >
+                                পুরুত্ব (ইঞ্চি)
+                            </th>
+
+                            <th
+                                id="colHeader2"
+                                class="py-2 px-1 text-center"
+                            >
+                                লম্বা (ফুট)
+                            </th>
+
+                            <th class="py-2 px-1 text-center">
+                                Quantity
+                            </th>
+
+                            <th
+                                id="colHeaderCFT"
+                                class="py-2 px-1 text-center"
+                            >
+                                CFT / গাছ
+                            </th>
+
+                            <th class="w-10"></th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="rowsContainer"></tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ADD ROW -->
+            <div class="mt-4">
+
+                <button
+                    onclick="addRow()"
+                    id="btnAddRow"
+                    class="w-full bg-emerald-900 hover:bg-emerald-950 text-white font-bold py-2.5 rounded-sm shadow text-center text-sm sm:text-base"
+                >
+                    + নতুন গাছ যোগ করুন
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <hr class="border-t-2 border-slate-900 my-6 no-print">
+
+
+        <!-- TOTAL -->
+        <div class="no-print mb-8 space-y-3">
+
+            <h3 class="text-lg sm:text-xl font-bold text-slate-900">
+                📊 মোট হিসাব
+            </h3>
+
+
+            <div class="border-t border-b border-slate-800 divide-y divide-slate-800 text-sm sm:text-base font-bold">
+
+                <div class="py-2.5 flex justify-between">
+                    <span id="labelTotalQty">মোট গাছ</span>
+                    <span id="statTotalQty">0</span>
+                </div>
+
+                <div class="py-2.5 flex justify-between">
+                    <span>মোট CFT</span>
+                    <span id="statTotalCFT">0</span>
+                </div>
+
+            </div>
+
+
+            <div class="pt-1 font-bold">
+
+                <div>মোট কাঠের দাম</div>
+
+                <div class="text-xl font-extrabold mt-1">
+                    ৳ <span id="statTotalPrice">0</span>
+                </div>
+
+            </div>
+
+
+            <!-- CLEAR -->
+            <div class="pt-4 text-center">
+
+                <button
+                    onclick="clearAllRows()"
+                    class="w-full sm:w-auto px-12 py-2.5 bg-red-300 hover:bg-red-400 text-red-700 font-bold rounded-sm"
+                >
+                    সব হিসাব মুছুন
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRINT BUTTON -->
+        <div class="no-print mt-8 mb-12 flex justify-center">
+
+            <button
+                onclick="triggerPrint()"
+                class="bg-[#4A2311] hover:bg-amber-950 text-white font-bold py-3 px-8 rounded-md shadow-lg"
+            >
+                🖨️ প্রিন্ট ক্যাশ মেমো / বিল
+            </button>
+
+        </div>
+
+
+        <!-- PRINT MEMO -->
+        <div
+            id="printArea"
+            class="bg-white p-8 border border-slate-300 relative overflow-hidden"
+        >
+
+            <div class="watermark">
+                SURA ROYAL LUXE
+            </div>
+
+
+            <!-- MEMO HEADER -->
+            <div class="relative z-10 border-b-2 border-slate-900 pb-4 mb-6 text-center">
+
+                <h1 class="text-3xl font-extrabold uppercase tracking-wider">
+                    SURA ROYAL LUXE
+                </h1>
+
+                <p class="text-sm font-bold text-slate-700">
+                    Uttor Badda, Dhaka-1212
+                </p>
+
+                <p class="text-xs text-slate-600 mt-1 font-semibold">
+                    ক্যাশ মেমো / কাঠের হিসাব বিল
+                </p>
+
+
+                <div class="flex justify-between mt-4 text-xs font-bold">
+
+                    <div>
+                        তারিখ:
+                        <span id="memoDate"></span>
+                    </div>
+
+                    <div>
+                        বিল নং:
+                        <span id="memoNo"></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MEMO TABLE -->
+            <div class="relative z-10 mb-6">
+
+                <table class="w-full text-left text-sm border-collapse">
+
+                    <thead>
+
+                        <tr class="border-b-2 border-slate-800 bg-slate-100 font-bold">
+
+                            <th class="py-2 px-2 text-center">
+                                ক্র.
+                            </th>
+
+                            <th class="py-2 px-2">
+                                বিবরণ / সাইজ
+                            </th>
+
+                            <th class="py-2 px-2 text-center">
+                                পরিমাণ
+                            </th>
+
+                            <th class="py-2 px-2 text-right">
+                                CFT
+                            </th>
+
+                            <th class="py-2 px-2 text-right">
+                                দর
+                            </th>
+
+                            <th class="py-2 px-2 text-right">
+                                মোট টাকা
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="memoTableBody"></tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- MEMO TOTAL -->
+            <div class="relative z-10 flex justify-end">
+
+                <div class="w-64 space-y-2 text-sm font-bold">
+
+                    <div class="flex justify-between">
+
+                        <span>মোট CFT:</span>
+
+                        <span id="memoTotalCFT">
+                            0
+                        </span>
+
+                    </div>
+
+
+                    <div class="flex justify-between border-t-2 border-slate-900 pt-2 text-base">
+
+                        <span>সর্বমোট দাম:</span>
+
+                        <span id="memoGrandTotal">
+                            ৳ 0
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SIGNATURE -->
+            <div class="relative z-10 mt-16 pt-8 border-t flex justify-between text-xs font-bold">
+
+                <div class="text-center">
+
+                    <div class="w-32 border-b border-slate-400 mb-1"></div>
+
+                    ক্রেতার স্বাক্ষর
+
+                </div>
+
+
+                <div class="text-center">
+
+                    <p class="font-bold text-slate-900 mb-6">
+                        SURA ROYAL LUXE
+                    </p>
+
+                    <div class="w-32 border-b border-slate-400 mb-1"></div>
+
+                    বিক্রেতার স্বাক্ষর
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        let currentMode = 'round';
+        let rowCount = 0;
+
+
+        /* =========================
+           PAGE LOAD
+        ========================== */
+
+        window.onload = function () {
+
+            const today = new Date();
+
+            const dateStr = today.toLocaleDateString(
+                'bn-BD',
+                {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }
+            );
+
+            document.getElementById('memoDate').innerText = dateStr;
+
+            document.getElementById('memoNo').innerText =
+                'SRL-' +
+                Math.floor(1000 + Math.random() * 9000);
+
+
+            addRow();
+            addRow();
+            addRow();
+
+        };
+
+
+        /* =========================
+           MODE SWITCH
+        ========================== */
+
+        function switchMode(mode) {
+
+            currentMode = mode;
+
+            const round = document.getElementById('lblRound');
+            const sawn = document.getElementById('lblSawn');
+
+            const radioRound =
+                document.getElementById('radioRound');
+
+            const radioSawn =
+                document.getElementById('radioSawn');
+
+            const title =
+                document.getElementById('boardTitle');
+
+            const header1 =
+                document.getElementById('colHeader1');
+
+            const thick =
+                document.getElementById('colHeaderThick');
+
+            const cft =
+                document.getElementById('colHeaderCFT');
+
+            const addButton =
+                document.getElementById('btnAddRow');
+
+            const totalLabel =
+                document.getElementById('labelTotalQty');
+
+
+            if (mode === 'round') {
+
+                radioRound.checked = true;
+
+                radioSawn.checked = false;
+
+                round.classList.remove('opacity-80');
+
+                sawn.classList.add('opacity-80');
+
+                title.innerHTML =
+                    '🌳 <span>গাছের হিসাব</span>';
+
+                header1.innerText =
+                    'বেড় (ইঞ্চি)';
+
+                thick.classList.add('hidden');
+
+                cft.innerText =
+                    'CFT / গাছ';
+
+                addButton.innerText =
+                    '+ নতুন গাছ যোগ করুন';
+
+                totalLabel.innerText =
+                    'মোট গাছ';
+
+            } else {
+
+                radioRound.checked = false;
+
+                radioSawn.checked = true;
+
+                sawn.classList.remove('opacity-80');
+
+                round.classList.add('opacity-80');
+
+                title.innerHTML =
+                    '🪵 <span>সাইজ কাঠের হিসাব</span>';
+
+                header1.innerText =
+                    'চওড়া (ইঞ্চি)';
+
+                thick.classList.remove('hidden');
+
+                cft.innerText =
+                    'CFT / কাঠ';
+
+                addButton.innerText =
+                    '+ নতুন কাঠ যোগ করুন';
+
+                totalLabel.innerText =
+                    'মোট কাঠ';
+
+            }
+
+
+            clearAllRows();
+
+            addRow();
+            addRow();
+            addRow();
+
+        }
+
+
+        /* =========================
+           ADD ROW
+        ========================== */
+
+        function addRow() {
+
+            rowCount++;
+
+            const tbody =
+                document.getElementById('rowsContainer');
+
+            const tr =
+                document.createElement('tr');
+
+            tr.id =
+                row-${rowCount};
+
+            tr.className =
+                'align-middle';
+
+
+            if (currentMode === 'round') {
+
+                tr.innerHTML = `
+
+                    <td class="py-1 px-1 text-center font-bold row-serial">
+                        1.
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-val1"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1 hidden input-thick-col">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-thick"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-val2"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value="1"
+                            class="board-input input-qty"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1 text-center font-bold output-cft">
+                        0.00
+                    </td>
+
+                    <td class="py-1 px-1 text-center">
+
+                        <button
+                            onclick="removeRow('row-${rowCount}')"
+                            class="bg-red-300 hover:bg-red-400 text-red-700 font-bold w-7 h-7 rounded"
+                        >
+                            X
+                        </button>
+
+                    </td>
+
+                `;
+
+            } else {
+
+                tr.innerHTML = `
+
+                    <td class="py-1 px-1 text-center font-bold row-serial">
+                        1.
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-val1"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1 input-thick-col">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-thick"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            step="any"
+                            class="board-input input-val2"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1">
+
+                        <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value="1"
+                            class="board-input input-qty"
+                            oninput="calculateTotals()"
+                        >
+
+                    </td>
+
+                    <td class="py-1 px-1 text-center font-bold output-cft">
+                        0.00
+                    </td>
+
+                    <td class="py-1 px-1 text-center">
+
+                        <button
+                            onclick="removeRow('row-${rowCount}')"
+                            class="bg-red-300 hover:bg-red-400 text-red-700 font-bold w-7 h-7 rounded"
+                        >
+                            X
+                        </button>
+
+                    </td>
+
+                `;
+
+            }
+
+
+            tbody.appendChild(tr);
+
+            updateSerials();
+
+            calculateTotals();
+
+        }
+
+
+        /* =========================
+           REMOVE ROW
+        ========================== */
+
+        function removeRow(rowId) {
+
+            const row =
+                document.getElementById(rowId);
+
+            if (row) {
+
+                row.remove();
+
+                updateSerials();
+
+                calculateTotals();
+
+            }
+
+        }
+
+
+        /* =========================
+           CLEAR ALL
+        ========================== */
+
+        function clearAllRows() {
+
+            document.getElementById(
+                'rowsContainer'
+            ).innerHTML = '';
+
+            calculateTotals();
+
+        }
+
+
+        /* =========================
+           SERIAL NUMBERS
+        ========================== */
+
+        function updateSerials() {
+
+            const serials =
+                document.querySelectorAll(
+                    '.row-serial'
+                );
+
+            serials.forEach(
+                (element, index) => {
+
+                    element.innerText =
+                        (index + 1) + '.';
+
+                }
+            );
+
+        }
+
+
+        /* =========================
+           CALCULATE
+        ========================== */
+
+        function calculateTotals() {
+
+            const rows =
+                document.querySelectorAll(
+                    '#rowsContainer tr'
+                );
+
+            const rate =
+                parseFloat(
+                    document.getElementById(
+                        'inputRate'
+                    ).value
+                ) || 0;
+
+
+            let totalQty = 0;
+
+            let totalCFT = 0;
+
+            let memoHTML = '';
+
+            let validItems = 0;
+
+
+            rows.forEach(row => {
+
+                const val1 =
+                    parseFloat(
+                        row.querySelector(
+                            '.input-val1'
+                        )?.value
+                    ) || 0;
+
+
+                const thick =
+                    parseFloat(
+                        row.querySelector(
+                            '.input-thick'
+                        )?.value
+                    ) || 0;
+
+
+                const val2 =
+                    parseFloat(
+                        row.querySelector(
+                            '.input-val2'
+                        )?.value
+                    ) || 0;
+
+
+                const qty =
+                    parseInt(
+                        row.querySelector(
+                            '.input-qty'
+                        )?.value
+                    ) || 0;
+
+
+                let cftPerPiece = 0;
+
+                let description = '';
+
+
+                /* ROUND LOG */
+
+                if (currentMode === 'round') {
+
+                    if (
+                        val1 > 0 &&
+                        val2 > 0
+                    ) {
+
+                        cftPerPiece =
+                            (
+                                val1 *
+                                val1 *
+                                val2
+                            ) / 2304;
+
+                        description =
+                            ${val1}" বেড় × ${val2}' লম্বা (গোল);
+
+                    }
+
+                }
+
+
+                /* SIZE WOOD */
+
+                else {
+
+                    if (
+                        val1 > 0 &&
+                        thick > 0 &&
+                        val2 > 0
+                    ) {
+
+                        cftPerPiece =
+                            (
+                                val1 *
+                                thick *
+                                val2
+                            ) / 144;
+
+                        description =
+                            ${val1}" × ${thick}" × ${val2}' (সাইজ);
+
+                    }
+
+                }
+
+
+                const rowCFT =
+                    cftPerPiece * qty;
+
+
+                row.querySelector(
+                    '.output-cft'
+                ).innerText =
+                    rowCFT.toFixed(2);
+
+
+                if (rowCFT > 0) {
+
+                    totalQty += qty;
+
+                    totalCFT += rowCFT;
+
+                    validItems++;
+
+
+                    const rowPrice =
+                        rowCFT * rate;
+
+
+                    memoHTML += `
+
+                        <tr>
+
+                            <td class="py-2 px-2 text-center font-bold">
+                                ${validItems}.
+                            </td>
+
+                            <td class="py-2 px-2">
+                                ${description}
+                            </td>
+
+                            <td class="py-2 px-2 text-center">
+                                ${qty}
+                            </td>
+
+                            <td class="py-2 px-2 text-right">
+                                ${rowCFT.toFixed(2)}
+                            </td>
+
+                            <td class="py-2 px-2 text-right">
+                                ৳ ${rate}
+                            </td>
+
+                            <td class="py-2 px-2 text-right font-bold">
+                                ৳ ${Math.round(rowPrice).toLocaleString('en-IN')}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+
+            });
+
+
+            const totalPrice =
+                totalCFT * rate;
+
+
+            /* UPDATE TOTAL */
+
+            document.getElementById(
+                'statTotalQty'
+            ).innerText =
+                totalQty;
+
+
+            document.getElementById(
+                'statTotalCFT'
+            ).innerText =
+                totalCFT.toFixed(2);
+
+
+            document.getElementById(
+                'statTotalPrice'
+            ).innerText =
+                Math.round(
+                    totalPrice
+                ).toLocaleString('en-IN');
+
+
+            /* UPDATE MEMO */
+
+            document.getElementById(
+                'memoTableBody'
+            ).innerHTML =
+                memoHTML ||
+                `
+                <tr>
+                    <td
+                        colspan="6"
+                        class="text-center py-4 text-slate-400"
+                    >
+                        কোনো আইটেম নেই
+                    </td>
+                </tr>
+                `;
+
+
+            document.getElementById(
+                'memoTotalCFT'
+            ).innerText =
+                totalCFT.toFixed(2);
+
+
+            document.getElementById(
+                'memoGrandTotal'
+            ).innerText =
+                '৳ ' +
+                Math.round(
+                    totalPrice
+                ).toLocaleString('en-IN');
+
+        }
+
+
+        /* =========================
+           PRINT
+        ========================== */
+
+        function triggerPrint() {
+
+            window.print();
+
+        }
+
+    </script>
+
+</body>
+</html>
+Compose
+Write to Parvess Fatema
+
+
+1:42 AM
