@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GULSHAN ANONDO FURNITURE - CFT Calculator</title>
+
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,"Noto Sans Bengali",sans-serif;margin:0;background:#f4f5f7;color:#1f2937;padding:14px}
+.container{max-width:1100px;margin:auto}
+.header{background:#4a2311;color:#fff;text-align:center;padding:20px 12px;border-radius:12px;margin-bottom:16px}
+.header h1{font-size:clamp(22px,4vw,34px);margin:0;font-weight:800}
+.header p{margin:7px 0 0}
+.clock{margin-top:9px;font-weight:bold;font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:15px}
+.controls{display:flex;gap:14px;flex-wrap:wrap;align-items:end}
+.field{flex:1;min-width:210px}
+label{display:block;font-weight:bold;margin-bottom:6px}
+input,select,button{font:inherit;border-radius:7px}
+input,select{width:100%;padding:10px;border:1px solid #aab0b7;background:#fff}
+button{border:1px solid #bbb;padding:10px 14px;cursor:pointer;font-weight:bold;background:#f2f3f5}
+button:focus,input:focus,select:focus{outline:2px solid #789b88;outline-offset:1px}
+.primary{background:#075b3d;color:white;border-color:#075b3d}
+.remove{background:#fff0f0;color:#a61b1b;padding:7px 10px}
+.formula{margin-top:12px;padding:10px;background:#f7f7f7;border-radius:7px;font-size:14px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:700px}
+th,td{border-bottom:1px solid #ddd;padding:8px 6px;text-align:center}
+th{background:#f1f3f4;font-size:13px}
+td input{width:90px;text-align:center;padding:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{background:white;border:1px solid #ddd;border-radius:10px;padding:13px}
+.stat-label{font-size:13px;color:#555}
+.stat-value{font-size:clamp(18px,3vw,26px);font-weight:800;margin-top:5px;overflow-wrap:anywhere}
+.section-title{margin:0 0 12px}
+#previewArea{position:relative;background:#fff;border:1px solid #cbd0d6;padding:24px;margin-top:14px;overflow:hidden}
+#previewArea:before{
+ content:"GULSHAN ANONDO FURNITURE";
+ position:absolute;left:50%;top:48%;
+ transform:translate(-50%,-50%) rotate(-28deg);
+ font-size:clamp(24px,5vw,54px);
+ font-weight:800;white-space:nowrap;
+ color:rgba(74,35,17,.07);pointer-events:none
+}
+.preview-content{position:relative;z-index:1}
+.memo-head{text-align:center;border-bottom:2px solid #222;padding-bottom:12px;margin-bottom:14px}
+.memo-head h2{margin:0;font-size:25px}
+.memo-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:bold;margin-top:13px}
+#memoTable{min-width:0;font-size:13px}
+#memoTable th,#memoTable td{padding:8px 5px}
+.memo-total{margin:16px 0 0 auto;max-width:300px;font-weight:bold}
+.memo-total div{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
+.signatures{display:flex;justify-content:space-between;gap:25px;margin-top:65px;font-size:12px;font-weight:bold}
+.signature{text-align:center;width:40%;border-top:1px solid #777;padding-top:7px}
+.hint{font-size:13px;color:#666}
+
+@media(max-width:650px){
+ body{padding:7px}
+ .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .card{padding:12px}
+ #previewArea{padding:12px}
+ .memo-head h2{font-size:20px}
+}
+
+@media print{
+ @page{size:A4;margin:12mm}
+ body{padding:0;background:#fff;font-size:12px}
+ .no-print{display:none!important}
+ .container{max-width:none;margin:0}
+ #previewArea{display:block!important;border:none;margin:0;padding:0;overflow:visible}
+ #previewArea:before{position:fixed}
+ .card{border:none;box-shadow:none;padding:0}
+ #memoTable{width:100%;min-width:0}
+ #memoTable th,#memoTable td{padding:6px 4px}
+ .signatures{margin-top:55px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>GULSHAN ANONDO FURNITURE</h1>
+    <p>উত্তর বাড্ডা, ঢাকা-১২১২</p>
+    <div class="clock" id="digitalClock">সময় লোড হচ্ছে...</div>
+  </header>
+
+  <section class="card no-print">
+    <div class="controls">
+      <div class="field">
+        <label for="woodType">কাঠের ধরন</label>
+        <select id="woodType">
+          <option value="round">গোল গাছ / Round Log</option>
+          <option value="sawn">সাইজ কাঠ / Size Wood</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="inputRate">প্রতি CFT দাম (৳)</label>
+        <input id="inputRate" type="number" min="0" step="0.01" placeholder="যেমন ৫০০০">
+      </div>
+    </div>
+
+    <div class="formula" id="formula"></div>
+  </section>
+
+  <section class="card no-print">
+    <h2 class="section-title" id="boardTitle">🌳 গাছের হিসাব</h2>
+
+    <div class="tablewrap">
+      <table>
+        <thead id="boardHead"></thead>
+        <tbody id="rowsContainer"></tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="addRowBtn">＋ নতুন গাছ যোগ করুন</button>
+      <button id="clearBtn">সব হিসাব মুছুন</button>
+      <button class="primary" id="printBtn">🖨️ প্রিন্ট ক্যাশ মেমো / বিল</button>
+    </div>
+
+    <p class="hint">
+      Serial নম্বর অটো ঠিক হবে। লাইন মুছলে নম্বর আবার ১, ২, ৩… হবে।
+    </p>
+  </section>
+
+  <section class="summary no-print">
+    <div class="stat">
+      <div class="stat-label" id="qtyLabel">মোট গাছ</div>
+      <div class="stat-value" id="statTotalQty">0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">মোট CFT</div>
+      <div class="stat-value" id="statTotalCFT">0.000</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">প্রতি CFT দাম</div>
+      <div class="stat-value" id="statRate">৳0</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">মোট কাঠের দাম</div>
+      <div class="stat-value" id="statTotalPrice">৳0</div>
+    </div>
+  </section>
+
+  <section id="previewArea" class="card">
+    <div class="preview-content">
+
+      <div class="memo-head">
+        <h2>GULSHAN ANONDO FURNITURE</h2>
+        <div>উত্তর বাড্ডা, ঢাকা-১২১২</div>
+        <div style="font-size:13px;margin-top:5px">
+          ক্যাশ মেমো / কাঠের হিসাব বিল
+        </div>
+
+        <div class="memo-meta">
+          <span>তারিখ: <span id="memoDate"></span></span>
+          <span>বিল নং: <span id="memoNo"></span></span>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table id="memoTable">
+          <thead>
+            <tr>
+              <th>ক্র.</th>
+              <th>বিবরণ / সাইজ</th>
+              <th>পরিমাণ</th>
+              <th>CFT</th>
+              <th>দর</th>
+              <th>মোট টাকা</th>
+            </tr>
+          </thead>
+          <tbody id="memoTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="memo-total">
+        <div>
+          <span>মোট পরিমাণ:</span>
+          <span id="memoQty">0</span>
+        </div>
+
+        <div>
+          <span>মোট CFT:</span>
+          <span id="memoTotalCFT">0.000</span>
+        </div>
+
+        <div style="border-top:2px solid #222;padding-top:8px;font-size:16px">
+          <span>সর্বমোট দাম:</span>
+          <span id="memoGrandTotal">৳0</span>
+        </div>
+      </div>
+
+      <div class="signatures">
+        <div class="signature">ক্রেতার স্বাক্ষর</div>
+        <div class="signature">বিক্রেতার স্বাক্ষর</div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const rowsContainer = $('rowsContainer');
+
+  let mode = 'round';
+  let rowId = 0;
+
+  const billNo = 'GAF-' + new Date().getFullYear() + '-' +
+    Math.floor(1000 + Math.random() * 9000);
+
+  $('memoNo').textContent = billNo;
+
+  // Digital clock এবং তারিখ
+  function updateClock() {
+    const now = new Date();
+
+    $('digitalClock').textContent =
+      '🕒 ' +
+      now.toLocaleDateString('bn-BD', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) +
+      ' | ' +
+      now.toLocaleTimeString('bn-BD', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+
+    $('memoDate').textContent =
+      now.toLocaleDateString('bn-BD', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // টাকার ফরম্যাট
+  function money(n) {
+    return '৳ ' + Math.round(n).toLocaleString('en-IN');
+  }
+
+  // কাঠের ধরন অনুযায়ী টেবিল ও Formula
+  function updateHead() {
+    if (mode === 'round') {
+      $('boardTitle').textContent = '🌳 গাছের হিসাব';
+      $('qtyLabel').textContent = 'মোট গাছ';
+      $('addRowBtn').textContent = '+ নতুন গাছ যোগ করুন';
+
+      $('formula').innerHTML =
+        '<b>গোল গাছের Formula:</b> (বেড় × বেড় × লম্বা) ÷ 2304';
+
+      $('boardHead').innerHTML = `
+        <tr>
+          <th>#</th>
+          <th>বেড় (ইঞ্চি)</th>
+          <th>লম্বা (ফুট)</th>
+          <th>Quantity</th>
+          <th>CFT / গাছ</th>
+          <th>মুছুন</th>
+        </tr>`;
+    } else {
+      $('boardTitle').textContent = '🪵 সাইজ কাঠের হিসাব';
+      $('qtyLabel').textContent = 'মোট কাঠ';
+      $('addRowBtn').textContent = '+ নতুন কাঠ যোগ করুন';
+
+      $('formula').innerHTML =
+        '<b>সাইজ কাঠের Formula:</b> (চওড়া × পুরুত্ব × লম্বা) ÷ 144';
+
+      $('boardHead').innerHTML = `
+        <tr>
+          <th>#</th>
+          <th>চওড়া (ইঞ্চি)</th>
+          <th>পুরুত্ব (ইঞ্চি)</th>
+          <th>লম্বা (ফুট)</th>
+          <th>Quantity</th>
+          <th>CFT / কাঠ</th>
+          <th>মুছুন</th>
+        </tr>`;
+    }
+  }
+
+  // Serial নম্বর নতুন করে সাজানো
+  function renumber() {
+    [...rowsContainer.querySelectorAll('tr')].forEach((tr, i) => {
+      tr.querySelector('.serial').textContent = (i + 1) + '.';
+    });
+  }
+
+  // নতুন সারি তৈরি
+  function addRow() {
+    rowId++;
+
+    const tr = document.createElement('tr');
+    tr.dataset.rowId = rowId;
+
+    if (mode === 'round') {
+      tr.innerHTML = `
+        <td class="serial"></td>
+
+        <td>
+          <input class="board-input v1" type="number"
+            min="0" step="any" aria-label="বেড় ইঞ্চি">
+        </td>
+
+        <td>
+          <input class="board-input v2" type="number"
+            min="0" step="any" aria-label="লম্বা ফুট">
+        </td>
+
+        <td>
+          <input class="board-input qty" type="number"
+            min="1" step="1" value="1" aria-label="Quantity">
+        </td>
+
+        <td class="out">0.000</td>
+
+        <td>
+          <button class="remove" type="button">X</button>
+        </td>`;
+    } else {
+      tr.innerHTML = `
+        <td class="serial"></td>
+
+        <td>
+          <input class="board-input v1" type="number"
+            min="0" step="any" aria-label="চওড়া ইঞ্চি">
+        </td>
+
+        <td>
+          <input class="board-input thick" type="number"
+            min="0" step="any" aria-label="পুরুত্ব ইঞ্চি">
+        </td>
+
+        <td>
+          <input class="board-input v2" type="number"
+            min="0" step="any" aria-label="লম্বা ফুট">
+        </td>
+
+        <td>
+          <input class="board-input qty" type="number"
+            min="1" step="1" value="1" aria-label="Quantity">
+        </td>
+
+        <td class="out">0.000</td>
+
+        <td>
+          <button class="remove" type="button">X</button>
+        </td>`;
+    }
+
+    rowsContainer.appendChild(tr);
+
+    tr.querySelectorAll('input').forEach(el => {
+      el.addEventListener('input', calculate);
+    });
+
+    tr.querySelector('.remove').addEventListener('click', () => {
+      tr.remove();
+      renumber();
+      calculate();
+    });
+
+    renumber();
+    calculate();
+  }
+
+  // সব হিসাব করা
+  function calculate() {
+    const rate = Math.max(0, Number($('inputRate').value) || 0);
+
+    let totalQty = 0;
+    let totalCft = 0;
+    let memo = '';
+    let itemNo = 0;
+
+    [...rowsContainer.querySelectorAll('tr')].forEach(tr => {
+      const v1 = Math.max(
+        0,
+        Number(tr.querySelector('.v1').value) || 0
+      );
+
+      const v2 = Math.max(
+        0,
+        Number(tr.querySelector('.v2').value) || 0
+      );
+
+      const thickEl = tr.querySelector('.thick');
+
+      const thick = thickEl
+        ? Math.max(0, Number(thickEl.value) || 0)
+        : 0;
+
+      const qty = Math.max(
+        0,
+        Math.floor(Number(tr.querySelector('.qty').value) || 0)
+      );
+
+      let unit = 0;
+      let desc = '';
+
+      // গোল গাছের Formula:
+      // (Diameter × Diameter × Length) ÷ 2304
+      if (mode === 'round' && v1 > 0 && v2 > 0) {
+        unit = (v1 * v1 * v2) / 2304;
+        desc = `${v1}" বেড় × ${v2}' লম্বা (গোল গাছ)`;
+      }
+
+      // সাইজ কাঠের Formula:
+      // (Width × Thickness × Length) ÷ 144
+      else if (
+        mode === 'sawn' &&
+        v1 > 0 &&
+        thick > 0 &&
+        v2 > 0
+      ) {
+        unit = (v1 * thick * v2) / 144;
+        desc = `${v1}" × ${thick}" × ${v2}' (সাইজ কাঠ)`;
+      }
+
+      const rowCft = unit * qty;
+      tr.querySelector('.out').textContent = rowCft.toFixed(3);
+
+      if (unit > 0 && qty > 0) {
+        itemNo++;
+        totalQty += qty;
+        totalCft += rowCft;
+
+        memo += `
+          <tr>
+            <td>${itemNo}</td>
+            <td>${desc}</td>
+            <td>${qty}</td>
+            <td>${rowCft.toFixed(3)}</td>
+            <td>${money(rate)}</td>
+            <td>${money(rowCft * rate)}</td>
+          </tr>`;
+      }
+    });
+
+    // উপরের সারাংশ
+    $('statTotalQty').textContent = totalQty;
+    $('statTotalCFT').textContent = totalCft.toFixed(3);
+    $('statRate').textContent = money(rate);
+    $('statTotalPrice').textContent = money(totalCft * rate);
+
+    // বিলের সারাংশ
+    $('memoQty').textContent = totalQty;
+    $('memoTotalCFT').textContent = totalCft.toFixed(3);
+    $('memoGrandTotal').textContent = money(totalCft * rate);
+
+    $('memoTableBody').innerHTML = memo ||
+      '<tr><td colspan="6" style="text-align:center;padding:18px;color:#777">কোনো হিসাব যোগ করা হয়নি</td></tr>';
+  }
+
+  // কাঠের ধরন বদলালে নতুন ইনপুট দেখানো
+  function switchMode() {
+    mode = $('woodType').value;
+    rowsContainer.innerHTML = '';
+
+    updateHead();
+
+    addRow();
+    addRow();
+    addRow();
+  }
+
+  // বাটন ও ইনপুটের Event
+  $('woodType').addEventListener('change', switchMode);
+
+  $('inputRate').addEventListener('input', calculate);
+
+  $('addRowBtn').addEventListener('click', addRow);
+
+  $('clearBtn').addEventListener('click', () => {
+    rowsContainer.innerHTML = '';
+    addRow();
+  });
+
+  $('printBtn').addEventListener('click', () => {
+    calculate();
+    window.print();
+  });
+
+  // প্রথমবার অ্যাপ চালু
+  updateHead();
+  addRow();
+  addRow();
+  addRow();
+})();
+</script>
+
+</body>
+</html>
